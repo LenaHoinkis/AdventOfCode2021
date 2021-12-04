@@ -44,59 +44,44 @@ func main() {
 
 	//part2
 	var oxygen, scrubber int64
-
-	for i := 0; i < len(lines[0])+1; i++ {
-		if len(lines) == 1 {
-			fmt.Println(lines)
-			oxygen, _ = strconv.ParseInt(lines[0], 2, 64)
-			break
-		}
-		var zeros, ones []string
-		for y := 0; y < len(lines); y++ {
-			if string(lines[y][i]) == "0" {
-				zeros = append(zeros, lines[y])
-			} else {
-				ones = append(ones, lines[y])
-			}
-		}
-		if len(zeros) > len(ones) {
-			lines = zeros
-		}
-		if len(zeros) < len(ones) {
-			lines = ones
-		}
-		if len(zeros) == len(ones) {
-			lines = ones
-		}
-	}
-
-	lines, err = utils.ReadLines(*inputFile)
-	if err != nil {
-		fmt.Print(err)
-	}
-	for i := 0; i < len(lines[0])+1; i++ {
-		if len(lines) == 1 {
-			fmt.Println(lines)
-			scrubber, _ = strconv.ParseInt(lines[0], 2, 64)
-			break
-		}
-		var zeros, ones []string
-		for y := 0; y < len(lines); y++ {
-			if string(lines[y][i]) == "0" {
-				zeros = append(zeros, lines[y])
-			} else {
-				ones = append(ones, lines[y])
-			}
-		}
-		if len(zeros) < len(ones) {
-			lines = zeros
-		}
-		if len(zeros) > len(ones) {
-			lines = ones
-		}
-		if len(zeros) == len(ones) {
-			lines = zeros
-		}
-	}
+	oxygen = calcValue(lines, false)
+	scrubber = calcValue(lines, true)
 	fmt.Println(oxygen * scrubber)
+}
+
+func calcValue(lines []string, takeZeros bool) int64 {
+	var x int64
+	for i := 0; i < len(lines[0])+1; i++ {
+		if len(lines) == 1 {
+			fmt.Println(lines)
+			x, _ = strconv.ParseInt(lines[0], 2, 64)
+			break
+		}
+		var zeros, ones []string
+		for y := 0; y < len(lines); y++ {
+			if string(lines[y][i]) == "0" {
+				zeros = append(zeros, lines[y])
+			} else {
+				ones = append(ones, lines[y])
+			}
+		}
+		if takeZeros {
+			if len(zeros) < len(ones) {
+				lines = zeros
+			} else if len(zeros) > len(ones) {
+				lines = ones
+			} else {
+				lines = zeros
+			}
+		} else {
+			if len(zeros) > len(ones) {
+				lines = zeros
+			} else if len(zeros) < len(ones) {
+				lines = ones
+			} else {
+				lines = ones
+			}
+		}
+	}
+	return x
 }
