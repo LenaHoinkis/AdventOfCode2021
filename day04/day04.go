@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var inputFile = flag.String("inputFile", "my.input", "Relative file path to use as input.")
+var inputFile = flag.String("inputFile", "data.input", "Relative file path to use as input.")
 
 func main() {
 	num, boards, err := ReadBingo(*inputFile)

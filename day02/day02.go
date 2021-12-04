@@ -9,7 +9,7 @@ import (
 	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
 
-var inputFile = flag.String("inputFile", "day02.input", "Relative file path to use as input.")
+var inputFile = flag.String("inputFile", "ex.input", "Relative file path to use as input.")
 
 func main() {
 	lines, err := utils.ReadLines(*inputFile)
