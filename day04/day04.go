@@ -17,16 +17,17 @@ func main() {
 		fmt.Print(err)
 	}
 
-	//part1
-	fmt.Println(calcWinningBoard(num, boards))
-
-	num, boards, err = ReadBingo(*inputFile)
-	if err != nil {
-		fmt.Print(err)
+	//copy
+	var boardsCopy1, boardsCopy2 [][5][5]int
+	for i := range boards {
+		boardsCopy1 = append(boardsCopy1, boards[i])
+		boardsCopy2 = append(boardsCopy2, boards[i])
 	}
 
+	//part1
+	fmt.Println(calcWinningBoard(num, boardsCopy1))
 	//part2
-	fmt.Println(calcLeastWinningBoard(num, boards))
+	fmt.Println(calcLeastWinningBoard(num, boardsCopy2))
 
 }
 
@@ -39,25 +40,8 @@ func calcWinningBoard(num []int, boards [][5][5]int) int {
 					if board[x][y] == num[i] {
 						boards[b][x][y] = -1
 						board = boards[b]
-						count := 0
-						for z := 0; z < 5; z++ {
-							if board[x][z] != -1 {
-								break
-							}
-							count++
-							if count == 5 {
-								return sumRemaining(board) * num[i]
-							}
-						}
-						count = 0
-						for z := 0; z < 5; z++ {
-							if board[z][y] != -1 {
-								break
-							}
-							count++
-							if count == 5 {
-								return sumRemaining(board) * num[i]
-							}
+						if isHit(boards[b], x, y) {
+							return sumRemaining(board) * num[i]
 						}
 					}
 				}
@@ -65,6 +49,34 @@ func calcWinningBoard(num []int, boards [][5][5]int) int {
 		}
 	}
 	return 0
+}
+
+func isHit(board [5][5]int, x int, y int) bool {
+	countx, county := 0, 0
+	for z := 0; z < 5; z++ {
+		if board[x][z] == -1 {
+			countx++
+		}
+		if board[z][y] == -1 {
+			county++
+		}
+		if countx == 5 || county == 5 {
+			return true
+		}
+	}
+	return false
+}
+
+func sumRemaining(b [5][5]int) int {
+	sum := 0
+	for x := 0; x < 5; x++ {
+		for y := 0; y < 5; y++ {
+			if b[x][y] != -1 {
+				sum += b[x][y]
+			}
+		}
+	}
+	return sum
 }
 
 //part2
@@ -83,32 +95,10 @@ func calcLeastWinningBoard(num []int, boards [][5][5]int) int {
 					if board[x][y] == num[i] {
 						boards[b][x][y] = -1
 						board = boards[b]
-						count := 0
-						for z := 0; z < 5; z++ {
-							if board[x][z] != -1 {
-								break
-							}
-							count++
-							if count == 5 {
-								winner = sumRemaining(board) * num[i]
-								boards[b][0][0] = -2
-								board = boards[b]
-
-							}
-						}
-						if boards[b][0][0] != -2 {
-							count = 0
-							for z := 0; z < 5; z++ {
-								if board[z][y] != -1 {
-									break
-								}
-								count++
-								if count == 5 {
-									winner = sumRemaining(board) * num[i]
-									boards[b][0][0] = -2
-									board = boards[b]
-								}
-							}
+						if isHit(boards[b], x, y) {
+							winner = sumRemaining(board) * num[i]
+							boards[b][0][0] = -2
+							board = boards[b]
 						}
 					}
 				}
@@ -116,18 +106,6 @@ func calcLeastWinningBoard(num []int, boards [][5][5]int) int {
 		}
 	}
 	return winner
-}
-
-func sumRemaining(b [5][5]int) int {
-	sum := 0
-	for x := 0; x < 5; x++ {
-		for y := 0; y < 5; y++ {
-			if b[x][y] != -1 {
-				sum += b[x][y]
-			}
-		}
-	}
-	return sum
 }
 
 func ReadBingo(path string) ([]int, [][5][5]int, error) {
