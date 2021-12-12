@@ -1,17 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"os"
 	"sort"
+
+	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
 
 func main() {
 	inputFile := flag.String("inputFile", "ex.input", "Relative file path to use as input.")
 	flag.Parse()
-	hm, _ := ReadHeatmap(*inputFile)
+	hm, _ := utils.ReadIntsMatrix(*inputFile)
 
 	//give the heatmap a 9er padding
 	height := len(hm) + 2
@@ -67,24 +67,4 @@ func checkNeighbours(hmPadded [][]int, y int, x int, sum int) int {
 	c += checkNeighbours(hmPadded, y, x+1, sum)
 	d += checkNeighbours(hmPadded, y, x-1, sum)
 	return sum + 1 + a + b + c + d
-}
-
-func ReadHeatmap(path string) ([][]int, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var result [][]int
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		var intSlice []int
-		for _, v := range line {
-			intSlice = append(intSlice, int(v)-48)
-		}
-		result = append(result, intSlice)
-	}
-	return result, scanner.Err()
 }

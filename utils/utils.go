@@ -67,6 +67,26 @@ func ReadInts(path string) ([]int, error) {
 	return result, scanner.Err()
 }
 
+func ReadIntsMatrix(path string) ([][]int, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var result [][]int
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		var intSlice []int
+		for _, v := range line {
+			intSlice = append(intSlice, int(v)-48)
+		}
+		result = append(result, intSlice)
+	}
+	return result, scanner.Err()
+}
+
 //PrintMatrix prints a 2d array of int
 func PrintMatrix(is [][]int) {
 	for _, i := range is {
