@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -85,14 +84,4 @@ func ReadIntsMatrix(path string) ([][]int, error) {
 		result = append(result, intSlice)
 	}
 	return result, scanner.Err()
-}
-
-//PrintMatrix prints a 2d array of int
-func PrintMatrix(is [][]int) {
-	for _, i := range is {
-		for _, v := range i {
-			fmt.Print(v)
-		}
-		fmt.Println()
-	}
 }
