@@ -22,6 +22,9 @@ func main() {
 
 	//with stringBuilder its fast enough for 26 loops
 	//with reassigning template each step it only worked for 18
+	//idea would be to use somehow regex
+	//or to add a new longer pattern to the map
+	//or both
 	var sb strings.Builder
 	for i := 0; i < 25; i++ {
 		for i := 0; i < len(template1)-1; i++ {

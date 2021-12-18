@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
 
 type Vertex struct {
@@ -49,7 +51,7 @@ func main() {
 			readable[i] = " "
 		}
 	}
-	printBoard(row, readable)
+	utils.PrintStringBoard(row, readable)
 }
 
 func sumBoard(compare int, board []int) int {
@@ -91,15 +93,6 @@ func foldX(row, col int, board []int, foldingPoint int) ([]int, int, int) {
 		board = append(board[:endOfLine], board[startOfNewLine:]...)
 	}
 	return board, row / 2, col
-}
-
-func printBoard(row int, board []string) {
-	for i, v := range board {
-		fmt.Print(v)
-		if (i+1)%row == 0 {
-			fmt.Println()
-		}
-	}
 }
 
 func PaperInstructions(path string) ([]Vertex, []Fold, int, int, error) {

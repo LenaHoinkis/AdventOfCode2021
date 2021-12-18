@@ -25,7 +25,7 @@ func ReadLinesOfInt(path string) ([]int, error) {
 	return numbers, scanner.Err()
 }
 
-//ReadLinesOfInt reads line and convert the number to int
+//ReadLinesOfInt reads line
 func ReadLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -64,6 +64,28 @@ func ReadInts(path string) ([]int, error) {
 
 	}
 	return result, scanner.Err()
+}
+
+func ReadIntsWithoutSeperator(path string) ([]int, int, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer file.Close()
+
+	var result []int
+	rows := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		rows = 0
+		for _, v := range line {
+			number, _ := strconv.Atoi(string(v))
+			result = append(result, number)
+			rows++
+		}
+	}
+	return result, rows, scanner.Err()
 }
 
 func ReadIntsMatrix(path string) ([][]int, error) {
