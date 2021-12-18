@@ -16,7 +16,7 @@ type Target struct {
 
 // H Heuristik -> 2*row*5
 func main() {
-	inputFile := flag.String("inputFile", "data.input", "Relative file path to use as input.")
+	inputFile := flag.String("inputFile", "ex.input", "Relative file path to use as input.")
 	flag.Parse()
 	xmin, xmax, ymin, ymax, _ := readTargetArea(*inputFile)
 	target := Target{xmin, xmax, ymin, ymax}
@@ -54,6 +54,23 @@ func main() {
 		}
 	}
 	fmt.Println(yBest, missedDistance)
+
+	//part2 try all combinations
+	//when y > -(target.YMin) no hit possible anyore
+	//when x > target.XMax no hit possible anyore
+	//x starting by 1
+	//y by target.YMin
+	Ymin := target.Ymin
+	sum := 0
+	for x := 1; x <= target.Xmax; x++ {
+		for y := Ymin; y < (Ymin)*-1; y++ {
+			_, missedDistance = throw(xpos, ypos, x, y, target)
+			if missedDistance == 0 {
+				sum++
+			}
+		}
+	}
+	fmt.Println(sum)
 }
 
 func throw(xpos, ypos, vxstart, vystart int, target Target) (int, int) {
@@ -83,7 +100,6 @@ func throw(xpos, ypos, vxstart, vystart int, target Target) (int, int) {
 		vystart--
 
 		if hasHitTarget(xpos, ypos, target) {
-			fmt.Println("hit!")
 			hit = true
 			break
 		}
@@ -96,15 +112,15 @@ func throw(xpos, ypos, vxstart, vystart int, target Target) (int, int) {
 
 func missedTarget(xpos int, ypos int, target Target) (missedSide bool, distance int) {
 	//left or right out of target
-	if xpos < target.Xmin && ypos <= target.Ymax {
+	if xpos < target.Xmin && ypos < target.Ymin {
 		return true, target.Xmin - xpos //missed for this value left -> throw stronger
 	}
-	if xpos > target.Xmax && ypos <= target.Ymax {
+	if xpos > target.Xmax && ypos < target.Ymin {
 		return true, -(xpos - target.Xmax) //missed for this value right -> throw less strong
 	}
 	//under target
 	if ypos < target.Ymin {
-		return true, 0
+		return true, ypos - target.Ymin
 	}
 	return false, 0
 }
