@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"unicode"
 
@@ -17,11 +16,6 @@ func main() {
 	flag.Parse()
 	lines, _ := utils.ReadLines(*inputFile)
 
-	t := &Node{data: -1}
-	t = t.insertLine("[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]")
-	t.explodes(0)
-	print(os.Stdout, t, 0, 'M')
-
 	x := &Node{data: -1}
 	for i, line := range lines {
 		if i == 0 {
@@ -31,11 +25,11 @@ func main() {
 		x = x.AddData(line)
 		exploded, splited := true, true
 		for exploded || splited {
-			print(os.Stdout, x, 0, 'M')
-			exploded = x.explodes(0)
-			print(os.Stdout, x, 0, 'M')
+			exploded, splited = true, true
+			for exploded {
+				exploded = x.explodes(0)
+			}
 			splited = x.split()
-			fmt.Println()
 		}
 	}
 	fmt.Println(x.magnitude())
@@ -101,67 +95,75 @@ func (n *Node) AddData(line string) *Node {
 	newRight.insertLine(line)
 	return n.parent
 }
-
 func (n *Node) explodes(depth int) bool {
-	//go deep starting left
-	explodeLeft, explodeRight := false, false
-	if depth != 5 {
-		if n.left != nil {
-			explodeLeft = n.left.explodes(depth + 1)
-		}
-		if n.right != nil {
-			explodeRight = n.right.explodes(depth + 1)
-		}
-	} else {
-		//left case
-		if n.parent.left == n {
-			lastLeft := n.parent.searchLeft()
-			//if we have a left field to add do it
-			if lastLeft != nil {
-				lastLeft.data += n.data
-			}
-
-			n.parent.left = nil
-			n = nil
-
-		} else {
-			nextRight := n.parent.searchRight()
-			if nextRight != nil {
-				nextRight.data += n.data
-			}
-
-			//left is empty, we need to balance with 0
-			if n.parent.left == nil {
-				n.parent.data = 0
-			}
-
-			n.parent.right = nil
-			n = nil
-		}
+	exploded := false
+	if depth == 5 {
+		n.explodesPair()
 		return true
+	} else {
+		if n.left != nil {
+			exploded = n.left.explodes(depth + 1)
+		}
+		if exploded {
+			return exploded
+		}
+		if n.left != nil {
+			exploded = n.right.explodes(depth + 1)
+		}
+		return exploded
+
 	}
-	return explodeLeft || explodeRight
+}
+
+func (n *Node) explodesPair() {
+	//left
+	lastLeft := n.parent.searchLeft()
+	//if we have a left field to add do it
+	if lastLeft != nil {
+		lastLeft.data += n.data
+	}
+	n.parent.left = nil
+
+	//right
+	n = n.parent.right
+	nextRight := n.parent.searchRight()
+	if nextRight != nil {
+		nextRight.data += n.data
+	}
+	//left is empty, we need to balance with 0
+	if n.parent.left == nil {
+		n.parent.data = 0
+	}
+	n.parent.right = nil
+	n = nil
+
 }
 
 func (n *Node) split() bool {
-	splitLeft, splitRight := false, false
+	split := false
 	//go deep starting left
 	if n.left != nil {
 		//safe the last left number in case of adding is required
-		splitLeft = n.left.split()
+		split = n.left.split()
+	}
+	if split {
+		return split
 	}
 	if n.right != nil {
-		splitRight = n.right.split()
+		split = n.right.split()
+	}
+	if split {
+		return split
 	}
 	//split if required
 	if n.data >= 10 {
 		//rounds down automatically by default
 		n.left = &Node{data: n.data / 2, left: nil, right: nil, parent: n}
-		n.right = &Node{data: n.data/2 + 1, left: nil, right: nil, parent: n}
+		n.right = &Node{data: n.data/2 + n.data%2, left: nil, right: nil, parent: n}
 		n.data = -1
 		return true
 	}
-	return splitLeft || splitRight
+	return split
 }
 
 func (n *Node) magnitude() int {
