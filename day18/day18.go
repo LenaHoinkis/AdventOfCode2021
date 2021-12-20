@@ -7,25 +7,38 @@ import (
 	"os"
 	"strconv"
 	"unicode"
+
+	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
 
 // Solution with Binary Tree
 func main() {
-	inputFile := flag.String("inputFile", "ex1.input", "Relative file path to use as input.")
+	inputFile := flag.String("inputFile", "ex2.input", "Relative file path to use as input.")
 	flag.Parse()
-	fmt.Println(inputFile)
+	lines, _ := utils.ReadLines(*inputFile)
 
-	n := &Node{data: -1}
-	n = n.insertLine("[[[[4,3],4],4],[7,[[8,4],9]]]")
-	n = n.AddData("[1,1]")
-	n.explodes(0)
-	n.split()
-	n.explodes(0)
-	print(os.Stdout, n, 0, 'M')
+	t := &Node{data: -1}
+	t = t.insertLine("[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]")
+	t.explodes(0)
+	print(os.Stdout, t, 0, 'M')
 
-	m := &Node{data: -1}
-	m = m.insertLine("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")
-	fmt.Println(m.magnitude())
+	x := &Node{data: -1}
+	for i, line := range lines {
+		if i == 0 {
+			x = x.insertLine(line)
+			continue
+		}
+		x = x.AddData(line)
+		exploded, splited := true, true
+		for exploded || splited {
+			print(os.Stdout, x, 0, 'M')
+			exploded = x.explodes(0)
+			print(os.Stdout, x, 0, 'M')
+			splited = x.split()
+			fmt.Println()
+		}
+	}
+	fmt.Println(x.magnitude())
 }
 
 type Node struct {
@@ -89,14 +102,15 @@ func (n *Node) AddData(line string) *Node {
 	return n.parent
 }
 
-func (n *Node) explodes(depth int) {
+func (n *Node) explodes(depth int) bool {
 	//go deep starting left
+	explodeLeft, explodeRight := false, false
 	if depth != 5 {
 		if n.left != nil {
-			n.left.explodes(depth + 1)
+			explodeLeft = n.left.explodes(depth + 1)
 		}
 		if n.right != nil {
-			n.right.explodes(depth + 1)
+			explodeRight = n.right.explodes(depth + 1)
 		}
 	} else {
 		//left case
@@ -112,27 +126,32 @@ func (n *Node) explodes(depth int) {
 
 		} else {
 			nextRight := n.parent.searchRight()
-			nextRight.data += n.data
+			if nextRight != nil {
+				nextRight.data += n.data
+			}
 
-			//if we deleted the left already and the node is still -1
-			if n.parent.data == -1 {
+			//left is empty, we need to balance with 0
+			if n.parent.left == nil {
 				n.parent.data = 0
 			}
 
 			n.parent.right = nil
 			n = nil
 		}
+		return true
 	}
+	return explodeLeft || explodeRight
 }
 
-func (n *Node) split() {
+func (n *Node) split() bool {
+	splitLeft, splitRight := false, false
 	//go deep starting left
 	if n.left != nil {
 		//safe the last left number in case of adding is required
-		n.left.split()
+		splitLeft = n.left.split()
 	}
 	if n.right != nil {
-		n.right.split()
+		splitRight = n.right.split()
 	}
 	//split if required
 	if n.data >= 10 {
@@ -140,7 +159,9 @@ func (n *Node) split() {
 		n.left = &Node{data: n.data / 2, left: nil, right: nil, parent: n}
 		n.right = &Node{data: n.data/2 + 1, left: nil, right: nil, parent: n}
 		n.data = -1
+		return true
 	}
+	return splitLeft || splitRight
 }
 
 func (n *Node) magnitude() int {
@@ -162,9 +183,17 @@ func (n *Node) searchRight() *Node {
 	if n.parent == nil {
 		return nil
 	}
+	//go up until we have a new route
 	if n.parent.right != nil && n.parent.right != n {
-		//check left
 		n = n.parent.right
+		//as long as there is no left we go down right
+		for n.left == nil {
+			if n.right == nil {
+				break
+			}
+			n = n.right
+		}
+		//go the left way down
 		for n.left != nil {
 			n = n.left
 		}
@@ -178,8 +207,15 @@ func (n *Node) searchLeft() *Node {
 		return nil
 	}
 	if n.parent.left != nil && n.parent.left != n {
-		//check right
 		n = n.parent.left
+		//as long as there is no right we go down left
+		for n.right == nil {
+			if n.left == nil {
+				break
+			}
+			n = n.left
+		}
+		//go the left way down
 		for n.right != nil {
 			n = n.right
 		}
