@@ -16,6 +16,7 @@ func main() {
 	flag.Parse()
 	lines, _ := utils.ReadLines(*inputFile)
 
+	//part1
 	x := &Node{data: -1}
 	for i, line := range lines {
 		if i == 0 {
@@ -33,6 +34,8 @@ func main() {
 		}
 	}
 	fmt.Println(x.magnitude())
+
+	//part2
 }
 
 type Node struct {
