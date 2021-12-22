@@ -3,12 +3,18 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"strconv"
 	"unicode"
 
 	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
+
+type Node struct {
+	left   *Node
+	right  *Node
+	parent *Node
+	data   int
+}
 
 // Solution with Binary Tree
 func main() {
@@ -24,14 +30,7 @@ func main() {
 			continue
 		}
 		x = x.AddData(line)
-		exploded, splited := true, true
-		for exploded || splited {
-			exploded, splited = true, true
-			for exploded {
-				exploded = x.explodes(0)
-			}
-			splited = x.split()
-		}
+		x = x.solve()
 	}
 	fmt.Println(x.magnitude())
 
@@ -45,14 +44,7 @@ func main() {
 			x := &Node{data: -1}
 			x = x.insertLine(l1)
 			x = x.AddData(l2)
-			exploded, splited := true, true
-			for exploded || splited {
-				exploded, splited = true, true
-				for exploded {
-					exploded = x.explodes(0)
-				}
-				splited = x.split()
-			}
+			x = x.solve()
 			m := x.magnitude()
 			if m > biggestMagnitude {
 				biggestMagnitude = m
@@ -62,12 +54,17 @@ func main() {
 	fmt.Println(biggestMagnitude)
 }
 
-type Node struct {
-	left   *Node
-	right  *Node
-	parent *Node
-	data   int
-	// empty bool
+//explode and split until nothing changes
+func (n *Node) solve() *Node {
+	exploded, splited := true, true
+	for exploded || splited {
+		exploded, splited = true, true
+		for exploded {
+			exploded = n.explodes(0)
+		}
+		splited = n.split()
+	}
+	return n
 }
 
 func (n *Node) insertLine(line string) *Node {
@@ -253,6 +250,8 @@ func (n *Node) searchLeft() *Node {
 	return n.parent.searchLeft()
 }
 
+/*
+Was helpful for testing
 func print(w io.Writer, node *Node, ns int, ch rune) {
 	if node == nil {
 		return
@@ -264,3 +263,4 @@ func print(w io.Writer, node *Node, ns int, ch rune) {
 	print(w, node.left, ns+2, 'L')
 	print(w, node.right, ns+2, 'R')
 }
+*/
