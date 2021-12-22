@@ -36,6 +36,30 @@ func main() {
 	fmt.Println(x.magnitude())
 
 	//part2
+	biggestMagnitude := 0
+	for _, l1 := range lines {
+		for _, l2 := range lines {
+			if l1 == l2 {
+				continue
+			}
+			x := &Node{data: -1}
+			x = x.insertLine(l1)
+			x = x.AddData(l2)
+			exploded, splited := true, true
+			for exploded || splited {
+				exploded, splited = true, true
+				for exploded {
+					exploded = x.explodes(0)
+				}
+				splited = x.split()
+			}
+			m := x.magnitude()
+			if m > biggestMagnitude {
+				biggestMagnitude = m
+			}
+		}
+	}
+	fmt.Println(biggestMagnitude)
 }
 
 type Node struct {
