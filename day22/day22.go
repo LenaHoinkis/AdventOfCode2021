@@ -46,12 +46,32 @@ func main() {
 	min := -50
 	c := NewCube(max, min)
 	for _, line := range lines {
-		setOn, x1, x2, y1, y2, z1, z2 := readInputLine(line)
-		if !checkOutOfBound(x1, x2, y1, y2, z1, z2) {
-			setField(setOn, c, cubeRange{x1, x2, y1, y2, z1, z2})
+		setOn, cr := readInputLine(line)
+		if !checkOutOfBound(cr.startX, cr.endX, cr.startY, cr.endY, cr.startZ, cr.endZ) {
+			setField(setOn, c, cr)
 		}
 	}
 	fmt.Println(countOn(c))
+	/*
+		part2
+		write only the index for on and off in a list
+		for each dimension
+			if it collides
+				on case : we need to merge
+					case1 lower bound
+					case2 higher bound
+					case3 in between
+				off case : we need to split
+			if it doesnt collide
+				on case: add it to the list
+				off case: no cupid found nothing happens
+	*/
+	for _, line := range lines {
+		setOn, cr := readInputLine(line)
+		if !checkOutOfBound(cr.startX, cr.endX, cr.startY, cr.endY, cr.startZ, cr.endZ) {
+			setField(setOn, c, cr)
+		}
+	}
 
 }
 
@@ -86,7 +106,7 @@ func checkOutOfBound(nums ...int) bool {
 	return false
 }
 
-func readInputLine(line string) (bool, int, int, int, int, int, int) {
+func readInputLine(line string) (bool, cubeRange) {
 	var x1, x2, y1, y2, z1, z2 int
 	setOn := true
 	if line[2] == 'f' {
@@ -95,5 +115,5 @@ func readInputLine(line string) (bool, int, int, int, int, int, int) {
 	} else {
 		fmt.Sscanf(line, "on x=%d..%d,y=%d..%d,z=%d..%d", &x1, &x2, &y1, &y2, &z1, &z2)
 	}
-	return setOn, x1, x2, y1, y2, z1, z2
+	return setOn, cubeRange{x1, x2, y1, y2, z1, z2}
 }
