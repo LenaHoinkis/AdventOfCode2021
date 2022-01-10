@@ -15,10 +15,11 @@ type cubeRange struct {
 	endY   int
 	startZ int
 	endZ   int
+	on     bool
 }
 
 func NewRange(x1, x2, y1, y2, z1, z2 int) *cubeRange {
-	cr := &cubeRange{x1, x2, y1, y2, z1, z2}
+	cr := &cubeRange{x1, x2, y1, y2, z1, z2, true}
 	if x2 < x1 {
 		cr.startX = x2
 		cr.endX = x1
@@ -32,8 +33,9 @@ func NewRange(x1, x2, y1, y2, z1, z2 int) *cubeRange {
 		cr.endZ = z1
 	}
 	return cr
-
 }
+
+//type cuberanges []*cubeRange
 
 type cube struct {
 	size, min int
@@ -53,7 +55,7 @@ func NewCube(max, min int) *cube {
 	return c
 }
 
-var inputFile = flag.String("inputFile", "ex2.input", "Relative file path to use as input.")
+var inputFile = flag.String("inputFile", "data.input", "Relative file path to use as input.")
 
 func main() {
 	flag.Parse()
@@ -73,77 +75,57 @@ func main() {
 	}
 	fmt.Println(countOn(c))
 
-	/*
-		part 2 solution with Inclusion–exclusion
-		when two cupids intersect, we get a new cupid which we need to subtract
-
-		example we get A then delete (L) and then add B. Everything 9x9 and intersection 1
-		1: v = 0
-		2: v+= A -> save A
-		3: v+= (-LuA) -> save -LuA
-		4: v+= B - AuB - (-BuLuA) -> save B
-
-		Add A, Add B, Delete L
-		1: v = 0 (0)
-		2: v+= A -> save A (9)
-		3: v+= B - AuB -> save B (17)
-		4: v+= (-LuA) + (-LuB) (16 wrong!) because LuA=LuB, I need to merge those I want to subtract
-
-		add all cuboid (solos)
-		calc v of cuboids
-		result += v
-		add all intersections (pairs)
-		calc v of all intersections
-		result -= v
-
-		again at start
-		add all intersections (tripels)
-		calc v of all intersections
-		result + v
-	*/
-
+	//thanks to the solution of https://github.com/bozdoz/advent-of-code-2021/blob/main/22/cubes.go
+	//I used the same approach but failed :(
 	fmt.Println("Part2")
 	var cuboids []cubeRange
-	result := 0
 	for _, line := range lines {
-		_, cuboid := readInputLine(line)
+		isOn, cuboid := readInputLine(line)
+		cuboid.on = isOn
 		cuboids = append(cuboids, cuboid)
 	}
-	result += volCuboids(cuboids)
-	togglePlus := false
-	tuples := 2
-	for {
-		intersections := getAllIntersections(cuboids, tuples)
-		if len(intersections) == 0 {
-			break
-		}
-		if togglePlus {
-			result += volCuboids(intersections)
-		} else {
-			result -= volCuboids(intersections)
-		}
-		togglePlus = !togglePlus
-		tuples++
-	}
-	fmt.Println(result)
+	fmt.Println(solvePart2(cuboids))
 }
 
-func getAllIntersections(input []cubeRange, tuple int) []cubeRange {
-	var intersections []cubeRange
-	combinations := Pool(tuple, input)
-	for _, c := range combinations {
-		intersection := NewRange(c[0].startX, c[0].endX, c[0].startY, c[0].endY, c[0].startZ, c[0].endZ)
-		for i := 1; i < len(c); i++ {
-			tmp := getIntersection(*intersection, c[i])
-			if tmp != nil {
-				intersection = tmp
-			}
+func solvePart2(cuboids []cubeRange) int {
+	result := 0
+
+	for i := len(cuboids) - 1; i >= 0; i-- {
+		cube := (cuboids)[i]
+
+		if !cube.on {
+			continue
 		}
-		if intersection != nil {
+
+		intersections := []cubeRange{}
+
+		// get all overlapping cubes (forwards)
+		for _, next := range (cuboids)[i+1:] {
+			intersection := getIntersection(next, cube)
+
+			if intersection == nil {
+				// did not intersect
+				continue
+			}
+
+			// in recursive calls, "isOn" is synonymous with "shouldCountVolume"
+			// as in, even if it's "off" we should calculate the total volume
+			// of the intersections
+			shouldCountVolume := true
+			intersection.on = shouldCountVolume
+
+			// if there is an intersection save it, and
+			// reverse all intersections of the cubes intersections
+			// i.e. don't count intersecting parts twice, and don't
+			// discount intersecting parts twice.
 			intersections = append(intersections, *intersection)
 		}
+
+		result += volCuboid(cube)
+		result -= solvePart2(intersections)
+
 	}
-	return intersections
+	return result
 }
 
 func volCuboids(cs []cubeRange) int {
@@ -154,28 +136,23 @@ func volCuboids(cs []cubeRange) int {
 	return vol
 }
 
-func getIntersection(a cubeRange, b cubeRange) *cubeRange {
-	if doesIntersect(a, b) {
-		return &cubeRange{
-			max(a.startX, b.startX),
-			min(a.endX, b.endX),
-			max(a.startY, b.startY),
-			min(a.endY, b.endY),
-			max(a.startZ, b.startZ),
-			min(a.endZ, b.endZ),
-		}
-	}
-	return nil
-}
-
-func doesIntersect(a cubeRange, b cubeRange) bool {
-	return (a.startX <= b.endX && a.endX >= b.startX) &&
-		(a.startY <= b.endY && a.endY >= b.startY) &&
-		(a.startZ <= b.endZ && a.endZ >= b.startZ)
-}
-
 func volCuboid(cr cubeRange) int {
 	return (cr.endX - cr.startX + 1) * (cr.endY - cr.startY + 1) * (cr.endZ - cr.startZ + 1)
+}
+
+func getIntersection(a cubeRange, b cubeRange) *cubeRange {
+	x1 := max(a.startX, b.startX)
+	x2 := min(a.endX, b.endX)
+	y1 := max(a.startY, b.startY)
+	y2 := min(a.endY, b.endY)
+	z1 := max(a.startZ, b.startZ)
+	z2 := min(a.endZ, b.endZ)
+
+	if (x2 < x1) || y2 < y1 || z2 < z1 {
+		return nil
+	}
+
+	return &cubeRange{x1, x2, y1, y2, z1, z2, a.on}
 }
 
 func setField(value bool, c *cube, cR cubeRange) {
@@ -233,25 +210,4 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func rPool(p int, n []cubeRange, c []cubeRange, cc [][]cubeRange) [][]cubeRange {
-	if len(n) == 0 || p <= 0 {
-		return cc
-	}
-	p--
-	for i := range n {
-		r := make([]cubeRange, len(c)+1)
-		copy(r, c)
-		r[len(r)-1] = n[i]
-		if p == 0 {
-			cc = append(cc, r)
-		}
-		cc = rPool(p, n[i+1:], r, cc)
-	}
-	return cc
-}
-
-func Pool(p int, n []cubeRange) [][]cubeRange {
-	return rPool(p, n, nil, nil)
 }
