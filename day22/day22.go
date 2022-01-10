@@ -74,114 +74,103 @@ func main() {
 	fmt.Println(countOn(c))
 
 	/*
-		part 2 solution with Inclusion–exclusion
-		when two cupids intersect, we get a new cupid which we need to subtract
+			part 2 solution with Inclusion–exclusion
+			when two cupids intersect, we get a new cupid which we need to subtract
 
-		example we get A then delete (L) and then add B. Everything 9x9 and intersection 1
-		1: v = 0
-		2: v+= A -> save A
-		3: v+= (-LuA) -> save -LuA
-		4: v+= B - AuB - (-BuLuA) -> save B
+			example we get A then delete (L) and then add B. Everything 9x9 and intersection 1
+			1: v = 0
+			2: v+= A -> save A
+			3: v+= (-LuA) -> save -LuA
+			4: v+= B - AuB - (-BuLuA) -> save B
 
-		Add A, Add B, Delete L
-		1: v = 0 (0)
-		2: v+= A -> save A (9)
-		3: v+= B - AuB -> save B (17)
-		4: v+= (-LuA) + (-LuB) (16 wrong!) because LuA=LuB, I need to merge those I want to subtract
-	*/
+			Add A, Add B, Delete L
+			1: v = 0 (0)
+			2: v+= A -> save A (9)
+			3: v+= B - AuB -> save B (17)
+			4: v+= (-LuA) + (-LuB) (16 wrong!) because LuA=LuB, I need to merge those I want to subtract
+
+			add all cuboid (solos)
+			calc v of cuboids
+			result += v
+			add all intersections (pairs)
+			calc v of all intersections
+			result -= v
+
+			again at start
+			add all intersections (tripels)
+			calc v of all intersections
+			result + v
+
+
+		fmt.Println("Part2")
+		result, v := 0, 0
+		var cubes []cubeRange
+		for _, line := range lines {
+			setOn, cr := readInputLine(line)
+			if setOn {
+				v, cubes = getMergedIntersections(setOn, cr, cubes)
+				// save cube to identify intersactions later (step2)
+				v += volCuboid(cr)
+				cubes = append(cubes, cr)
+				result += v
+			} else {
+				v, cubes = getMergedIntersections(setOn, cr, cubes)
+				result += v
+			}
+
+			fmt.Println(result)
+		}	*/
+
 	fmt.Println("Part2")
-	result, v := 0, 0
-	var cubes []cubeRange
+	var cuboids []cubeRange
+	result := 0
 	for _, line := range lines {
-		setOn, cr := readInputLine(line)
-		if setOn {
-			v, cubes = getMergedIntersections(setOn, cr, cubes)
-			// save cube to identify intersactions later (step2)
-			v += volCupid(cr)
-			cubes = append(cubes, cr)
-			result += v
-		} else {
-			v, cubes = getMergedIntersections(setOn, cr, cubes)
-			result += v
-		}
-
-		fmt.Println(result)
+		_, cuboid := readInputLine(line)
+		cuboids = append(cuboids, cuboid)
 	}
-
+	result += volCuboids(cuboids)
+	togglePlus := false
+	tuples := 2
+	for {
+		intersections := getAllIntersections(cuboids, tuples)
+		if len(intersections) == 0 {
+			break
+		}
+		if togglePlus {
+			result += volCuboids(intersections)
+		} else {
+			result -= volCuboids(intersections)
+		}
+		togglePlus = !togglePlus
+		tuples++
+	}
+	fmt.Println(result)
 }
 
-func getMergedIntersections(setOn bool, cr cubeRange, cubes []cubeRange) (int, []cubeRange) {
-	volumeToAdd := 0
+func getAllIntersections(input []cubeRange, tuple int) []cubeRange {
 	var intersections []cubeRange
-
-	//go through all cuboids and see where it overlaps
-	for _, c := range cubes {
-		var intersection *cubeRange
-		if setOn {
-			intersection = getIntersection(c, cr)
-		} else {
-			intersection = getIntersection(cr, c)
+	combinations := Pool(tuple, input)
+	for _, c := range combinations {
+		intersection := NewRange(c[0].startX, c[0].endX, c[0].startY, c[0].endY, c[0].startZ, c[0].endZ)
+		for i := 1; i < len(c); i++ {
+			tmp := getIntersection(*intersection, c[i])
+			if tmp != nil {
+				intersection = tmp
+			}
 		}
 		if intersection != nil {
 			intersections = append(intersections, *intersection)
 		}
 	}
-
-	//go trough all intersections and smaller them if required
-	for range intersections {
-		intersections = smaller(cr, intersections)
-	}
-
-	//go trough all intersections and merge overlapping sections
-	i := 0
-	for range intersections {
-		intersections, i = merge(intersections, i)
-	}
-
-	//go trough all intersections and sum up
-	for _, intersection := range intersections {
-		volumeToAdd -= volCupid(intersection)
-		if !setOn {
-			cubes = append(cubes, intersection)
-		}
-	}
-
-	return volumeToAdd, cubes
+	return intersections
 }
 
-func smaller(a cubeRange, list []cubeRange) []cubeRange {
-	for i := 0; i < len(list); i++ {
-		if doesContain(list[i], a) {
-			list = remove(i, list)
-		}
+func volCuboids(cs []cubeRange) int {
+	vol := 0
+	for _, c := range cs {
+		vol += volCuboid(c)
 	}
-	return list
-}
-
-func merge(list []cubeRange, index int) ([]cubeRange, int) {
-	for i := index + 1; i < len(list); i++ {
-		if doesContain(list[index], list[i]) {
-			list = remove(i, list)
-		} else if doesContain(list[i], list[index]) {
-			list = remove(index, list)
-			return list, index
-		}
-	}
-	return list, index + 1
-}
-
-func remove(i int, a []cubeRange) []cubeRange {
-	// Remove the element at index i from a.
-	a[i] = a[len(a)-1] // Copy last element to index i.
-	//a[len(a)-1] = nil  // Erase last element (write zero value).
-	a = a[:len(a)-1] // Truncate slice.
-	return a
-}
-
-func doesContain(a cubeRange, b cubeRange) bool {
-	return (a.startX <= b.startX && a.endX >= b.endX) &&
-		(a.startY <= b.startY && a.endY >= b.endY) &&
-		(a.startZ <= b.startZ && a.endZ >= b.endZ)
+	return vol
 }
 
 func getIntersection(a cubeRange, b cubeRange) *cubeRange {
@@ -204,7 +193,7 @@ func doesIntersect(a cubeRange, b cubeRange) bool {
 		(a.startZ <= b.endZ && a.endZ >= b.startZ)
 }
 
-func volCupid(cr cubeRange) int {
+func volCuboid(cr cubeRange) int {
 	return (cr.endX - cr.startX + 1) * (cr.endY - cr.startY + 1) * (cr.endZ - cr.startZ + 1)
 }
 
@@ -263,4 +252,25 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func rPool(p int, n []cubeRange, c []cubeRange, cc [][]cubeRange) [][]cubeRange {
+	if len(n) == 0 || p <= 0 {
+		return cc
+	}
+	p--
+	for i := range n {
+		r := make([]cubeRange, len(c)+1)
+		copy(r, c)
+		r[len(r)-1] = n[i]
+		if p == 0 {
+			cc = append(cc, r)
+		}
+		cc = rPool(p, n[i+1:], r, cc)
+	}
+	return cc
+}
+
+func Pool(p int, n []cubeRange) [][]cubeRange {
+	return rPool(p, n, nil, nil)
 }
