@@ -15,10 +15,10 @@ type Rule struct {
 }*/
 
 func main() {
-	inputFile := flag.String("inputFile", "ex.input", "Relative file path to use as input.")
+	inputFile := flag.String("inputFile", "data.input", "Relative file path to use as input.")
 	flag.Parse()
 	template1, m, _ := pattern(*inputFile)
-	//template2 := template1
+	template2 := template1
 
 	//with stringBuilder its fast enough for 26 loops
 	//with reassigning template each step it only worked for 18
@@ -26,7 +26,7 @@ func main() {
 	//or to add a new longer pattern to the map
 	//or both
 	var sb strings.Builder
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 5; i++ {
 		for i := 0; i < len(template1)-1; i++ {
 			sb.WriteString(string(template1[i]))
 			add, ok := m[template1[i:i+2]]
@@ -53,18 +53,49 @@ func main() {
 		}
 	}
 	fmt.Println(max - min)
-	/*
-		for k, v := range m {
-			re := regexp.MustCompile(k)
-			findings := re.FindAllIndex([]byte(template2), -1)
-			for _, finding := range findings {
-				template2 = join(template1[:finding[0]+1], v, template1[finding[1]:])
-			}
+
+	//See Lanternfish
+	fmt.Println("part2")
+	//4 characters and 16 pairs
+	pairs := make(map[string]int)
+	characters := make(map[string]int)
+
+	//inital fill
+	for i := 0; i < len(template2)-1; i++ {
+		pair := template2[i : i+2]
+		pairs[pair]++
+		characters[template2[i:i+1]]++
+	}
+	characters[template2[len(template2)-1:]]++
+
+	for i := 0; i < 40; i++ {
+		tempPairs := make(map[string]int)
+		for pair, count := range pairs {
+			translate := m[pair]
+			tempPairs[translate+pair[1:]] += count
+			tempPairs[pair[:1]+translate] += count
+
+			characters[translate] += count
 		}
-		fmt.Println(template2)
-	*/
+		pairs = tempPairs
+	}
+	fmt.Println(maxMinusMin(characters))
 }
 
+func maxMinusMin(m map[string]int) int {
+	max, min := m["B"], m["B"]
+	for _, v := range m {
+		if v > max {
+			max = v
+		}
+		if v < min {
+			min = v
+		}
+	}
+	return max - min
+}
+
+//Readfunction
 func pattern(path string) (string, map[string]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
