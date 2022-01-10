@@ -74,52 +74,33 @@ func main() {
 	fmt.Println(countOn(c))
 
 	/*
-			part 2 solution with Inclusion–exclusion
-			when two cupids intersect, we get a new cupid which we need to subtract
+		part 2 solution with Inclusion–exclusion
+		when two cupids intersect, we get a new cupid which we need to subtract
 
-			example we get A then delete (L) and then add B. Everything 9x9 and intersection 1
-			1: v = 0
-			2: v+= A -> save A
-			3: v+= (-LuA) -> save -LuA
-			4: v+= B - AuB - (-BuLuA) -> save B
+		example we get A then delete (L) and then add B. Everything 9x9 and intersection 1
+		1: v = 0
+		2: v+= A -> save A
+		3: v+= (-LuA) -> save -LuA
+		4: v+= B - AuB - (-BuLuA) -> save B
 
-			Add A, Add B, Delete L
-			1: v = 0 (0)
-			2: v+= A -> save A (9)
-			3: v+= B - AuB -> save B (17)
-			4: v+= (-LuA) + (-LuB) (16 wrong!) because LuA=LuB, I need to merge those I want to subtract
+		Add A, Add B, Delete L
+		1: v = 0 (0)
+		2: v+= A -> save A (9)
+		3: v+= B - AuB -> save B (17)
+		4: v+= (-LuA) + (-LuB) (16 wrong!) because LuA=LuB, I need to merge those I want to subtract
 
-			add all cuboid (solos)
-			calc v of cuboids
-			result += v
-			add all intersections (pairs)
-			calc v of all intersections
-			result -= v
+		add all cuboid (solos)
+		calc v of cuboids
+		result += v
+		add all intersections (pairs)
+		calc v of all intersections
+		result -= v
 
-			again at start
-			add all intersections (tripels)
-			calc v of all intersections
-			result + v
-
-
-		fmt.Println("Part2")
-		result, v := 0, 0
-		var cubes []cubeRange
-		for _, line := range lines {
-			setOn, cr := readInputLine(line)
-			if setOn {
-				v, cubes = getMergedIntersections(setOn, cr, cubes)
-				// save cube to identify intersactions later (step2)
-				v += volCuboid(cr)
-				cubes = append(cubes, cr)
-				result += v
-			} else {
-				v, cubes = getMergedIntersections(setOn, cr, cubes)
-				result += v
-			}
-
-			fmt.Println(result)
-		}	*/
+		again at start
+		add all intersections (tripels)
+		calc v of all intersections
+		result + v
+	*/
 
 	fmt.Println("Part2")
 	var cuboids []cubeRange

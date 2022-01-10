@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -81,13 +82,17 @@ func Test_Pool(t *testing.T) {
 	}
 }
 
-/*
-func main() {
-    pool := 9
-    numbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-    p := Pool(pool, numbers)
-    fmt.Println(pool, "digit pool", "for", "numbers", numbers)
-    for i := range p {
-        fmt.Println(p[i])
-    }
-}*/
+func Test_Deletion(t *testing.T) {
+	A := *NewRange(10, 12, 10, 12, 10, 12)
+	B := *NewRange(11, 13, 11, 13, 11, 13)
+	L := *NewRange(11, 12, 11, 12, 11, 12)
+	cubes := []cubeRange{A, B, L}
+	//L,A,B (nothing happens)
+
+	//A,L,B (nothing happens B fills the gap)
+
+	//B,L,A (L deletes parts of B)
+
+	//A,B,L (L deletes parts of B and the intersection between AB)
+	fmt.Println(cubes)
+}
