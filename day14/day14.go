@@ -56,11 +56,17 @@ func main() {
 
 	//See Lanternfish
 	fmt.Println("part2")
-	//4 characters and 16 pairs
+
+	//pairs count all our pair combination
+	//we can later lookup in m what character gets inserted
 	pairs := make(map[string]int)
+
+	//we save the characters only to have the result in the end
+	//it would also be possible to calc them by the pairs map we saved
 	characters := make(map[string]int)
 
 	//inital fill
+	//counting all pairs (with overlap) and all characters
 	for i := 0; i < len(template2)-1; i++ {
 		pair := template2[i : i+2]
 		pairs[pair]++
@@ -69,12 +75,15 @@ func main() {
 	characters[template2[len(template2)-1:]]++
 
 	for i := 0; i < 40; i++ {
+		//we create a temp map to not manipulate our calculation before we went trough all combinations
 		tempPairs := make(map[string]int)
 		for pair, count := range pairs {
+			//get the new char
 			translate := m[pair]
+			//when we insert a char in between we get two new combinations BN -> V will get BV and VN
 			tempPairs[translate+pair[1:]] += count
 			tempPairs[pair[:1]+translate] += count
-
+			//save the new character for the result in the end
 			characters[translate] += count
 		}
 		pairs = tempPairs
