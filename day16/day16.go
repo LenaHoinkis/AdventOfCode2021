@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"strconv"
 	"strings"
-	"unsafe"
 
 	"github.com/lenahoinkis/AdventOfCode2021/utils"
 )
@@ -18,7 +16,7 @@ func main() {
 	input := lines[0]
 
 	//hex2int
-	s := hexToBinary(input)
+	s := utils.HexToBinary(input)
 	fmt.Println(readPackage(s))
 }
 
@@ -48,7 +46,7 @@ func readLiteral(content string) (string, int) {
 		}
 		i = i + 5
 	}
-	v, _ := binaryToInt(sb.String())
+	v, _ := utils.BinaryToInt(sb.String())
 	return content[i:], int(v)
 }
 
@@ -56,7 +54,7 @@ func readOperator(content string, id int) (int, string, int) {
 	versionPart2 := make([]int, 0)
 	version := 0
 	if content[0] == '0' {
-		totalLenght, _ := binaryToInt(content[1:16]) // bits length
+		totalLenght, _ := utils.BinaryToInt(content[1:16]) // bits length
 		newcontent := content[16 : totalLenght+16]
 		for i := 0; len(newcontent) > 0; i++ {
 			v, r2 := 0, 0
@@ -66,7 +64,7 @@ func readOperator(content string, id int) (int, string, int) {
 		}
 		content = content[totalLenght+16:]
 	} else {
-		subPackageCount, _ := binaryToInt(content[1:12]) //11bits
+		subPackageCount, _ := utils.BinaryToInt(content[1:12]) //11bits
 		newcontent := content[12:]
 		for i := 0; i < int(subPackageCount); i++ {
 			v, r2 := 0, 0
@@ -96,23 +94,4 @@ func readOperator(content string, id int) (int, string, int) {
 	}
 
 	return version, content, resultPart2
-}
-
-func hexToBinary(s string) string {
-	decoded, _ := hex.DecodeString(s)
-	var sb strings.Builder
-	for _, bit := range decoded {
-		sb.WriteString(fmt.Sprintf("%08b", int(bit)))
-	}
-	return sb.String()
-}
-
-func binaryToInt(s string) (int64, error) {
-	return strconv.ParseInt(Clone(s), 2, 64)
-}
-
-func Clone(s string) string {
-	b := make([]byte, len(s))
-	copy(b, s)
-	return *(*string)(unsafe.Pointer(&b))
 }
