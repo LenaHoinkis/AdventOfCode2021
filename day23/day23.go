@@ -33,6 +33,9 @@ func NewAmphipod(i int, color string) *amphipod {
 
 var inputFile = flag.String("inputFile", "ex1.input", "Relative file path to use as input.")
 
+var floors = []int{0, 1, 2, 5, 6, 9, 10, 13, 14, 17, 18}
+var siderooms = [][]int{{3, 7, 11, 15}, {4, 8, 12, 16}}
+
 func main() {
 	flag.Parse()
 	lines, _ := utils.ReadLines(*inputFile)
@@ -260,12 +263,7 @@ func (a *amphipod) setOnPlace(others []*amphipod) *amphipod {
 }
 
 func isInRoom(field, lvl int) bool {
-	for i := 3; i <= 15; i += 4 {
-		if field == i+lvl {
-			return true
-		}
-	}
-	return false
+	return contains(siderooms[lvl], field)
 }
 
 func fieldForColor(color string) (int, int) {
